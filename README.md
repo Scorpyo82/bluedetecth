@@ -67,4 +67,4 @@ podrá identificarse, luego pondrá su contraseña y por ultimo podrá meter el 
 Presione Ctrl+ALT+F7 para ir a la interfaz gráfica, y una vez ahí podrá meter la contraseña y desbloquear su cuenta.
 
 
-< miguelponcetorres@gmail.com | http://pc-citos.blogspot.com >
+< miguelponcetorres@gmail.com | http://www.pc-citos.com | http://www.pc-citos.com >
