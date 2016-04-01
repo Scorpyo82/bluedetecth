@@ -1,0 +1,369 @@
+#!/bin/bash
+
+#    bluedetecth es una pequeña utilidad que se encarga de bloquear la pantalla
+#    cuando el usuario se aleja del PC en el que se está ejecutando.
+#    Copyright (C) <2011> <Miguel Ponce Torres>
+#
+#    Este programa es software libre: usted puede redistribuirlo y / o modificar
+#    bajo los términos de la GNU General Public License publicada por
+#    la Free Software Foundation, bien de la versión 3 de la Licencia, o
+#    (A su elección) cualquier versión posterior.
+#
+#    Este programa se distribuye con la esperanza de que sea útil,
+#    pero SIN NINGUNA GARANTÍA, incluso sin la garantía implícita de
+#    COMERCIALIZACIÓN o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Consulte la
+#    Licencia Pública General GNU para más detalles.
+#
+#    Debería haber recibido una copia de la Licencia Pública General GNU
+#    junto con este programa. Si no, vea <http://www.gnu.org/licenses/>.
+#
+#    Si quiere contactar con <Miguel Ponce Torres> puede hacerlo en: miguelponcetorres@gmail.com
+#
+#    Este script usa la idea original de Javier Perez
+#    <http://javierperez.eu/bloqueo-y-desbloqueo-de-pantalla-por-detector-de-presencia-en-ubuntu-con-bluetooth-aimtooth/>
+#    pero añadiendo muchos más extras y más facilida de uso al script original.
+
+#    Este script está preparado para andar en Gnome, para que funcione en KDE u otros
+#    escritorios hay que cambiar la orden zinety por la adecuada para KDE u otros.
+
+#Se guarda el nombre del usuario que hay logueado en el sistema.
+USUARIO=`whoami`
+echo "El usuario detectado es $USUARIO"
+
+# Se comprueba si el programa está corriendo
+lockfile=/var/lock/bluedetecth.lock
+
+if [ ! -e $lockfile ]; then
+	# Si no está corriendo se ejecuta lo siguiente
+	# creamos el fichero de bloqueo
+	touch $lockfile
+else
+	if zenity --question --title "Detector de presencia" --text "La aplicación ya está en uso. \n¿Quiere cerrarla?"; then
+		zenity --info --title "Cerrando aplicación" --text "La aplicación se cerrará"
+		echo "La aplicación se cerrará"
+		rm $lockfile
+		killall bluedetecth
+		sudo -k
+		exit
+	fi
+	exit
+fi
+
+#-------------------------------------------------------------
+# Se busca zenity y verifica si está instalado
+dpkg --list zenity | grep ^ii
+# Si zenity no está instalado el comando anterior
+# devolverá un código diferente a cero entonces se abrirá
+# una ventana para ver el proceso y apt-get
+# instalará zenity
+if [ "$?" != "0" ]
+then
+	echo "El programa zenity no está instalado y ha de instalarse"
+	zenity --warning --title "Falta un componente" --text "No se encontró zenity"
+	if zenity --question --title "Consejo" --text "¿Instalar zenity desde el \nCentro de software de ubuntu?"
+	then
+		zenity --info --title "Relanzar" --text "Relanze el programa cuando haya instalado zenity"
+		software-center zenity
+		rm $lockfile
+		exit
+	else
+		zenity --warning --title "Se saldrá del programa" --text "Instale zenity antes de volver a intentarlo"
+		rm $lockfile
+		exit
+	fi
+fi
+
+# Aquí se avisa de que es necesario la creación de una carpeta temporal (tmp) si esta no existe
+if [ ! -d ~/tmp ]; then
+	zenity --info --title "Creación de una carpeta temporal..." --text "Bluedetecth nesecita crear una carpeta temporal. \n\
+Ruta de la carpeta: `echo ~/tmp`"
+	mkdir ~/tmp
+fi
+
+# Aquí se avisa de que es necesario la creación de una carpeta de trabajo si esta no existe
+if [ ! -d ~/.bluedetecth ]; then
+	zenity --info --title "Creación de una carpeta de configuración" --text "Bluedetecth nesecita crear una carpeta para guardar sus datos. \n\
+Ruta de la carpeta: `echo ~/.bluedetecth`"
+	mkdir ~/.bluedetecth
+	touch ~/.bluedetecth/terminales
+fi
+
+# Aquí se pregunta si se quiere un acceso directo al escritorio si no existe
+if [ ! -L ~/Escritorio/bluedetecth ]; then
+	if zenity --question --title "Comodidad" --text "Se ha detectado que no tiene un acceso directo al escritorio. \n ¿Quiere crearlo?"; then
+		ln -s `pwd`/bluedetecth ~/Escritorio
+	fi
+fi
+
+zenity --info --title "Bluedetecth" --text "A continuación se hará un escaneo por bluetooth.\n\n\
+ATENCIÓN:\n\
+Encienda su terminal movil y cuando esté listo presione aceptar."
+
+echo "Detector de presencia, Iniciando detector..."
+
+#-------------------------------------------------------------
+
+#--------Mostrando una barra de progreso---------
+(
+hcitool scan | sed -e '1d' > ~/tmp/bluetudetecth.scan&
+echo "# Comenzando escaneo..."
+echo "10" ; sleep 1
+echo "20" ; sleep 1
+echo "# Buscando dispositivos..."
+echo "30" ; sleep 1
+echo "40" ; sleep 1
+echo "50" ; sleep 1
+echo "60" ; sleep 1
+echo "# Terminando escaneo..."
+echo "70" ; sleep 1
+echo "80" ; sleep 1
+echo "# Cargando lista de dispositivos..."
+echo "90" ; sleep 1
+echo "96" ; sleep 1
+echo "100" ; sleep 1
+) |
+zenity --progress --auto-close \
+--title="Escaneo bluetooth" \
+--text="Rastreando los dispositivos cercanos" \
+--percentage=0
+BOTONESPROGRESOS=$?
+echo "Salida de la barra de progreso (0 = ok / 1 = cancelado) $BOTONESPROGRESOS" # Dato para control
+
+if [ "$BOTONESPROGRESOS" = 1 ] ; then
+	killall hcitool
+	zenity --warning --title "Cancelado!" --text="Ha cancelado la búsqueda de dispositivos.\n\
+Los resultados mostrados a continuación no serán concisos..."
+fi
+
+#----------Fin de barra----------
+
+
+# Se mete en la variable TELEFONO la elección del usuario del
+# resultado del archivo ~/tmp/bluetudetecth.scan
+# En el cual están los datos recogidos por el último escaneo.
+
+TELEFONO=$(zenity --list --title "Elija una dispositivo" \
+--text "Dispositivos encontrados:" \
+--column "Mac" --column "Nombre Disp" `cat ~/tmp/bluetudetecth.scan`)
+BOTONESLISTA=$?
+echo "Salida del diálogo de lista (0 = ok / 1 = cancelado) $BOTONESLISTA" # Dato para control
+echo "El terminal elegido (si se eligió alguno) es: $TELEFONO" # Dato de control
+echo $BOTONESLISTA "Es el valor del boton de lista"
+if [ $BOTONESLISTA = "0" ]; then
+
+	if [ -z "$TELEFONO" ]; then
+		zenity --warning --title "Cancelado y cerrando" --text "Parece que no eligió ningún dispositivo o no hay dispositivos cerca... \n\
+El programa terminará ahora."
+		rm $lockfile
+		exit
+	else
+		export INTERFACE=$TELEFONO
+	fi
+
+else
+	zenity --warning --title "Cancelado y cerrando" --text "Ha decidido cancelar la operación de enlace... \n\
+El programa se cerrará."
+	rm $lockfile
+	exit
+fi
+
+# Función para calcular media de señal y mostrar barra de progreso
+
+function calcular()
+{
+	gksu "hcitool cc ${INTERFACE}" -m "Para hacer conexiones al teléfono hace falta permisos de root"
+	sleep 1
+	sudo hcitool dc ${INTERFACE}
+	echo "# Conectando con el dispositivo..."; sleep 1
+	
+	# Creamos un bucle hasta que pase el tiempo establecido en la variable TIEMPOSCAN
+
+	SEGUNDOS=0
+	PORCENTAJE=0
+	TIEMPOSCAN=20 # Aquí se establece el tiempo de scaneo, por defecto a 20 segundos
+	MEDIA=0
+	TOTAL=0
+
+	while [ $SEGUNDOS -lt $TIEMPOSCAN ]; do	
+		sudo hcitool cc ${INTERFACE}
+
+		sleep 1
+
+		Signal="`hcitool lq ${INTERFACE}`"
+		SENAL="${Signal##*: }"
+		let CALIDAD=SENAL/255*100
+		let TOTAL=TOTAL+CALIDAD
+		let SEGUNDOS=SEGUNDOS+1
+		if [ $SEGUNDOS = "1" ]; then
+			let MEDIA=CALIDAD
+		else
+			let MEDIA=TOTAL/SEGUNDOS
+		fi
+
+		let PORCENTAJE=SEGUNDOS*100/TIEMPOSCAN
+		echo "# Calidad del enlace: $CALIDAD % \n\
+Calidad media obtenida: $MEDIA %\n\
+Progreso del cálculo $PORCENTAJE % 
+"
+		echo $PORCENTAJE
+		sudo hcitool dc ${INTERFACE}
+	done
+	echo "${INTERFACE} $MEDIA" > ~/tmp/bluedetecth.media
+}
+
+
+# Aquí ha de cotejarse los datos de la variable escogida con el archivo de terminales en: ~/.bluedetecth/terminales
+# para ver si existen datos del teléfono, si no existen datos del teléfono, se hará un examen de calidad del enlace
+# y se añadirá una nueva línea a ese archivo
+
+# Se busca el terminal en la base de datos
+if grep $TELEFONO ~/.bluedetecth/terminales; then
+	if zenity --question --title " Terminal conocido! " \
+--text "Este terminal es conocido y existen datos sobre él. \n\
+¿Quiere usar esos datos?"; then
+
+		POTENCIAMEDIA=`grep $TELEFONO ~/.bluedetecth/terminales | awk '1 { print $2 }'`
+		let POTENCIADEBIL=POTENCIAMEDIA*255/100-30
+	else
+		# Se borra la línea en la que están los datos del teléfono
+		BORRARLINEA=`cat ~/.bluedetecth/terminales | nl | grep $TELEFONO | awk '1 { print $1 }'`
+		mv ~/.bluedetecth/terminales ~/.bluedetecth/terminales.backup
+		cat ~/.bluedetecth/terminales.backup | sed "$BORRARLINEA d" > ~/.bluedetecth/terminales
+		
+		# Se hace un nuevo escaneo de la calidad del terminal y se añade una nueva linea con referencia al terminal $TELEFONO	
+		calcular | zenity --progress \
+		--title="Control de calidad..." \
+		--auto-close \
+		--text="Esperando...." \
+		--percentage=0
+		BOTONESCALCULO=$?
+	
+		if [ $BOTONESCALCULO = "1" ]; then
+			zenity --warning --title "Operación cancelada" --text "Al cancelar la operación no se ha creado un perfil del teléfono. \n\
+El programa utilizará valores standard."
+			POTENCIADEBIL=180
+		else
+			cat ~/tmp/bluedetecth.media >> ~/.bluedetecth/terminales
+			POTENCIAMEDIA=`grep $TELEFONO ~/.bluedetecth/terminales | awk '1 { print $2 }'`
+			let POTENCIADEBIL=POTENCIAMEDIA*255/100-30
+			zenity --info --title "Estadística terminada" --text "MAC del terminal: $TELEFONO \n
+Calidad media: $POTENCIAMEDIA"
+
+	fi
+	fi
+else
+	zenity --info --title " Terminal nuevo! " \
+--text "Este terminal es nuevo y no hay referencias sobre él en la base de datos \n\n \
+Es necesario calcular la estadística del alcance del aparato y añadirla a la base de datos."
+	# Se hace un escaneo de la calidad del terminal y se añade una nueva linea con referencia al terminal $TELEFONO	
+	calcular | zenity --progress \
+	--title="Control de calidad..." \
+	--auto-close \
+	--text="Esperando...." \
+	--percentage=0
+	BOTONESCALCULO=$?
+	
+	if [ $BOTONESCALCULO = "1" ]; then
+		zenity --warning --title "Operación cancelada" --text "Al cancelar la operación no se ha creado un perfil del teléfono. \n\
+El programa utilizará valores standard."
+		POTENCIADEBIL=200
+	else
+		cat ~/tmp/bluedetecth.media >> ~/.bluedetecth/terminales
+		POTENCIAMEDIA=`grep $TELEFONO ~/.bluedetecth/terminales | awk '1 { print $2 }'`
+		let POTENCIADEBIL=POTENCIAMEDIA*255/100-30
+		zenity --info --title "Estadística terminada" --text "MAC del terminal: $TELEFONO \n
+Calidad media: $POTENCIAMEDIA"
+	fi
+fi
+
+
+# Se comprueba que el terminal sigue cerca.
+gksu hcitool cc ${INTERFACE}
+
+sleep 1
+
+hcitool lq ${INTERFACE}; echo $? > ~/tmp/bluedetecth.conect
+CONECTADO=$(cat ~/tmp/bluedetecth.conect)
+
+if [ "$CONECTADO" = "1" ]; then
+	echo "Sin señal..."
+	zenity --warning --title "No se detecta el telefono" --text "El teléfono con Interface: $INTERFACE \n no es detectado :("
+	echo "El programa se cerrará para evitar problemas."
+	zenity --info --title "Cierre de seguridad" --text "El programa se cerrará para evitar problemas"
+	rm $lockfile
+	sudo -k
+	exit
+else
+
+	echo "Terminal localizado...."
+	zenity --info --title "¡Terminal localizado!" --text "El teléfono con Interface: $INTERFACE ha sido detectado y se hace su seguimiento XD"
+fi
+
+#	sudo hcitool dc ${INTERFACE}
+
+# --------Esta es la idea original de <Javier Perez> bastante modificada por <Miguel Ponce Torres>--------
+let REINCIDENTE=0
+while true; do
+
+sudo hcitool cc ${INTERFACE}
+
+sleep 1
+
+Signal=$(hcitool lq ${INTERFACE}; echo $? > ~/tmp/bluedetecth.conect)
+
+CONECTADO=$(cat ~/tmp/bluedetecth.conect)
+echo "Valor de conectado: $CONECTADO"
+
+if [ "$CONECTADO" = "1" ]; then
+
+	if [ $REINCIDENTE -lt 2 ]; then
+		# Si el número de picos continuados es menor a 2, se le suma 1
+		let REINCIDENTE=REINCIDENTE+1
+	fi
+
+	if [ $REINCIDENTE -gt 1 ]; then
+		# Si el número de picos continuados es mayor a 1 se bloquea la pantalla
+		sudo -u $USUARIO gnome-screensaver-command --lock
+	fi
+else
+
+
+	echo $Signal
+	echo "El umbral para desconectar es de: $POTENCIADEBIL"
+
+	if [ "${Signal##*: }" -lt $POTENCIADEBIL ]; then
+		echo "Baja señal"
+
+		# Mejora para evitar sustos por picos de baja intencidad
+		if [ $REINCIDENTE -lt 2 ]; then
+			# Si el número de picos continuados es menor a 2, se le suma 1
+			let REINCIDENTE=REINCIDENTE+1
+		fi
+	
+		if [ $REINCIDENTE -gt 1 ]; then
+			# Si el número de picos continuados es mayor a 1 se bloquea la pantalla
+			sudo -u $USUARIO gnome-screensaver-command --lock
+		fi
+	else
+		echo "Buena señal"
+		# Mejora para evitar sustos por picos de baja intencidad
+
+		if [ $REINCIDENTE -gt 1 ]; then
+			# Si la señal es buena y el valor de RENCIDENCIA es mayor a 1, se le perdona un valor (se le resta 1).
+			let REINCIDENTE=REINCIDENTE-1
+		else
+			# Si no se pone a 0
+			let REINCIDENTE=0
+		fi
+		sudo -u $USUARIO gnome-screensaver-command --deactivate
+fi
+fi
+echo "Reincidencia: $REINCIDENTE"
+sudo hcitool dc ${INTERFACE}
+done
+# ---------------Fin de idea de Javier Perez modificada--------------- 
+
+
+gksu hcitool dc ${INTERFACE}
+sudo -k
+exit
