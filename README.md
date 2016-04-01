@@ -24,7 +24,7 @@
     pero se han añadido muchos más extras y más facilidad de uso que en el script original no tenía.
 
     Este script está preparado para andar en Gnome, para que funcione en KDE u otros
-    escritorios hay que cambiar la orden zinety por la adecuada para KDE u otros.
+    escritorios hay que cambiar la orden zenity por la adecuada para KDE u otros.
 
 
 
@@ -61,8 +61,8 @@ mantendrá su pantalla bloqueada hasta que se vuelva a localizar el terminal.
 Para solucionar este problema en caso de que el terminal no pueda volver a estar disponible, usted puede apretar Ctrl+ALT+F1 se abrirá una consola "tty1" en ella
 podrá identificarse, luego pondrá su contraseña y por ultimo podrá meter el siguiente comando para matar el proseso de "bluedetecth".
 
-$ killall bluedetecth
-$ exit
+    $ killall bluedetecth
+    $ exit
 
 Presione Ctrl+ALT+F7 para ir a la interfaz gráfica, y una vez ahí podrá meter la contraseña y desbloquear su cuenta.
 
