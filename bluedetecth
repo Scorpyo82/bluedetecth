@@ -52,6 +52,7 @@ fi
 #-------------------------------------------------------------
 # Se busca zenity y verifica si está instalado
 dpkg --list zenity | grep ^ii
+echo ""
 # Si zenity no está instalado el comando anterior
 # devolverá un código diferente a cero entonces se abrirá
 # una ventana para ver el proceso y apt-get
@@ -59,15 +60,17 @@ dpkg --list zenity | grep ^ii
 if [ "$?" != "0" ]
 then
 	echo "El programa zenity no está instalado y ha de instalarse"
-	zenity --warning --title "Falta un componente" --text "No se encontró zenity"
-	if zenity --question --title "Consejo" --text "¿Instalar zenity desde el \nCentro de software de ubuntu?"
+	read -p "¿Desea instalar zenity ahora? s/n: " RESPUESTA 
+	echo ""
+	
+	if  [ $RESPUESTA == "s" ]
 	then
-		zenity --info --title "Relanzar" --text "Relanze el programa cuando haya instalado zenity"
-		software-center zenity
+		#software-center zenity
+		sudo apt-get update && sudo apt-get install zenity -y
 		rm $lockfile
 		exit
 	else
-		zenity --warning --title "Se saldrá del programa" --text "Instale zenity antes de volver a intentarlo"
+                echo "Se aborta el arranque del script"
 		rm $lockfile
 		exit
 	fi
