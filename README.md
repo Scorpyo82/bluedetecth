@@ -1,31 +1,30 @@
+#README
 
-Datos:
+    bluedetecth es una pequeña utilidad que se encarga de bloquear la pantalla
+    cuando el usuario se aleja del PC en el que se está ejecutando.
+    Copyright (C) <2011> <Miguel Ponce Torres>
 
-#    bluedetecth es una pequeña utilidad que se encarga de bloquear la pantalla
-#    cuando el usuario se aleja del PC en el que se está ejecutando.
-#    Copyright (C) <2011> <Miguel Ponce Torres>
-#
-#    Este programa es software libre: usted puede redistribuirlo y / o modificar
-#    bajo los términos de la GNU General Public License publicada por
-#    la Free Software Foundation, bien de la versión 3 de la Licencia, o
-#    (A su elección) cualquier versión posterior.
-#
-#    Este programa se distribuye con la esperanza de que sea útil,
-#    pero SIN NINGUNA GARANTÍA, incluso sin la garantía implícita de
-#    COMERCIALIZACIÓN o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Consulte la
-#    Licencia Pública General GNU para más detalles.
-#
-#    Debería haber recibido una copia de la Licencia Pública General GNU
-#    junto con este programa. Si no, vea <http://www.gnu.org/licenses/>.
-#
-#    Si quiere contactar con <Miguel Ponce Torres> puede hacerlo en: miguelponcetorres@gmail.com
-#
-#    Este script usa la idea original de Javier Perez
-#    <http://javierperez.eu/bloqueo-y-desbloqueo-de-pantalla-por-detector-de-presencia-en-ubuntu-con-bluetooth-aimtooth/>
-#    pero se han añadido muchos más extras y más facilidad de uso que en el script original no tenía.
+    Este programa es software libre: usted puede redistribuirlo y / o modificar
+    bajo los términos de la GNU General Public License publicada por
+    la Free Software Foundation, bien de la versión 3 de la Licencia, o
+    (A su elección) cualquier versión posterior.
 
-#    Este script está preparado para andar en Gnome, para que funcione en KDE u otros
-#    escritorios hay que cambiar la orden zinety por la adecuada para KDE u otros.
+    Este programa se distribuye con la esperanza de que sea útil,
+    pero SIN NINGUNA GARANTÍA, incluso sin la garantía implícita de
+    COMERCIALIZACIÓN o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Consulte la
+    Licencia Pública General GNU para más detalles.
+
+    Debería haber recibido una copia de la Licencia Pública General GNU
+    junto con este programa. Si no, vea <http://www.gnu.org/licenses/>.
+
+    Si quiere contactar con <Miguel Ponce Torres> puede hacerlo en: miguelponcetorres@gmail.com
+
+    Este script usa la idea original de Javier Perez
+    <http://javierperez.eu/bloqueo-y-desbloqueo-de-pantalla-por-detector-de-presencia-en-ubuntu-con-bluetooth-aimtooth/>
+    pero se han añadido muchos más extras y más facilidad de uso que en el script original no tenía.
+
+    Este script está preparado para andar en Gnome, para que funcione en KDE u otros
+    escritorios hay que cambiar la orden zinety por la adecuada para KDE u otros.
 
 
 
