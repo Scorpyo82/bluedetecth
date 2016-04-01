@@ -68,7 +68,7 @@ then
 		#software-center zenity
 		sudo apt-get update && sudo apt-get install zenity -y
 		rm $lockfile
-		exit
+		#exit
 	else
                 echo "Se aborta el arranque del script"
 		rm $lockfile
